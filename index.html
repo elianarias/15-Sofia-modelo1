@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>15 años — Template Amatista Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Tenor+Sans&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --oro:        #C9A96E;
+      --oro-claro:  #E8D5A3;
+      --oro-tenue:  rgba(201,169,110,0.15);
+      --blanco:     #FDFBF7;
+      --gris-suave: #F5F2EC;
+      --texto:      #2C2416;
+      --texto-suave:#7A6A52;
+      --linea:      rgba(201,169,110,0.3);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--blanco);
+      color: var(--texto);
+      font-family: 'Tenor Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -30vh; right: -20vw;
+      width: 70vw; height: 70vw;
+      border-radius: 50%;
+      border: 1px solid var(--linea);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -20vh; left: -15vw;
+      width: 50vw; height: 50vw;
+      border-radius: 50%;
+      border: 1px solid var(--linea);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── Canvas destellos ── */
+    #destellos-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 2;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+    #destellos-canvas.activo { opacity: 1; }
+
+    .pagina {
+      position: relative;
+      z-index: 3;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 4rem 2rem 6rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Animaciones ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      animation: revelar 1s cubic-bezier(.22,.61,.36,1) forwards;
+    }
+    @keyframes revelar { to { opacity: 1; transform: translateY(0); } }
+    .r1 { animation-delay: 0.2s; } .r2 { animation-delay: 0.6s; }
+    .r3 { animation-delay: 1.0s; } .r4 { animation-delay: 1.4s; }
+    .r5 { animation-delay: 1.8s; } .r6 { animation-delay: 2.2s; }
+    .r7 { animation-delay: 2.6s; } .r8 { animation-delay: 3.0s; }
+    .r9 { animation-delay: 3.4s; }
+
+    /* ── Saludo ── */
+    .saludo-invitado {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1rem;
+      color: var(--oro);
+      letter-spacing: 0.08em;
+      margin-bottom: 3rem;
+      text-align: center;
+    }
+
+    /* ── Ornamento ── */
+    .ornamento { display: flex; align-items: center; gap: 1rem; margin-bottom: 2.5rem; }
+    .ornamento-linea { width: 60px; height: 1px; background: linear-gradient(90deg, transparent, var(--oro)); }
+    .ornamento-linea.derecha { background: linear-gradient(90deg, var(--oro), transparent); }
+    .ornamento-diamante { width: 8px; height: 8px; background: var(--oro); transform: rotate(45deg); flex-shrink: 0; }
+
+    /* ── Encabezado ── */
+    .presenta {
+      font-size: 0.7rem; letter-spacing: 0.25em;
+      color: var(--texto-suave); text-transform: uppercase;
+      margin-bottom: 1rem; text-align: center;
+    }
+    .nombre-quinceañera {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: clamp(3rem, 12vw, 4.5rem);
+      line-height: 1.05; text-align: center;
+      color: var(--texto); letter-spacing: 0.02em;
+      margin-bottom: 3rem;
+    }
+
+    /* ── Reproductor ── */
+    .musica-contenedor {
+      width: 100%;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0.8rem; margin-bottom: 0.5rem;
+    }
+    .musica-label { font-size: 0.65rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--oro); }
+    .musica-inner { display: flex; align-items: center; gap: 1rem; }
+    .btn-play {
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 1px solid var(--oro); background: transparent;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s ease; flex-shrink: 0;
+    }
+    .btn-play:hover { background: var(--oro-tenue); }
+    .btn-play svg { width: 16px; height: 16px; fill: var(--oro); }
+    .btn-play .icon-pause { display: none; }
+    .btn-play.playing .icon-play  { display: none; }
+    .btn-play.playing .icon-pause { display: block; }
+
+    .musica-barras { display: flex; align-items: flex-end; gap: 3px; height: 20px; opacity: 0; transition: opacity 0.4s; }
+    .musica-barras.activo { opacity: 1; }
+    .musica-barras span { display: block; width: 3px; background: var(--oro); border-radius: 2px; animation: barra 0.8s ease-in-out infinite alternate; }
+    .musica-barras span:nth-child(1) { height: 8px;  animation-delay: 0s;    animation-duration: 0.7s; }
+    .musica-barras span:nth-child(2) { height: 16px; animation-delay: 0.15s; animation-duration: 0.9s; }
+    .musica-barras span:nth-child(3) { height: 12px; animation-delay: 0.3s;  animation-duration: 0.6s; }
+    .musica-barras span:nth-child(4) { height: 20px; animation-delay: 0.1s;  animation-duration: 1.0s; }
+    .musica-barras span:nth-child(5) { height: 10px; animation-delay: 0.25s; animation-duration: 0.75s;}
+    @keyframes barra { from { transform: scaleY(0.3); } to { transform: scaleY(1); } }
+    .musica-titulo { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 0.9rem; color: var(--texto-suave); }
+
+    /* ── Separador ── */
+    .sep { display: flex; align-items: center; gap: 1.2rem; width: 100%; margin: 2rem 0; }
+    .sep-linea { flex: 1; height: 1px; background: var(--linea); }
+    .sep-centro { display: flex; gap: 6px; align-items: center; }
+    .sep-punto { width: 4px; height: 4px; background: var(--oro); border-radius: 50%; }
+    .sep-punto.grande { width: 6px; height: 6px; }
+
+    /* ── Info evento ── */
+    .info-evento { width: 100%; display: flex; flex-direction: column; gap: 1.8rem; margin-bottom: 1rem; }
+    .info-bloque { text-align: center; }
+    .info-label { font-size: 0.65rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--oro); margin-bottom: 0.5rem; }
+    .info-valor { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 300; color: var(--texto); line-height: 1.4; }
+    .info-sub { font-size: 0.8rem; color: var(--texto-suave); margin-top: 0.2rem; letter-spacing: 0.05em; }
+
+    /* ── Botón mapa ── */
+    .btn-mapa {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      padding: 0.75rem 2rem; border: 1px solid var(--oro);
+      color: var(--oro); font-family: 'Tenor Sans', sans-serif;
+      font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase;
+      text-decoration: none; transition: all 0.3s ease; margin-top: 0.5rem;
+    }
+    .btn-mapa:hover { background: var(--oro); color: var(--blanco); }
+    .btn-mapa svg { width: 14px; height: 14px; fill: currentColor; }
+
+    /* ── Frase ── */
+    .frase {
+      font-family: 'Cormorant Garamond', serif; font-style: italic;
+      font-size: 1.05rem; font-weight: 300; color: var(--texto-suave);
+      text-align: center; line-height: 1.8;
+      padding: 2rem 1rem;
+      border-top: 1px solid var(--linea); border-bottom: 1px solid var(--linea);
+      width: 100%; margin: 1rem 0;
+    }
+
+    /* ── Countdown ── */
+    .countdown-titulo { font-size: 0.65rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--oro); margin-bottom: 1.2rem; text-align: center; }
+    .countdown { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 0.5rem; }
+    .cd-bloque { text-align: center; min-width: 52px; }
+    .cd-num { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; font-weight: 300; color: var(--texto); line-height: 1; display: block; }
+    .cd-label { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--texto-suave); margin-top: 0.3rem; display: block; }
+    .cd-sep { font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: var(--oro); line-height: 1.1; align-self: flex-start; margin-top: 0.2rem; }
+
+    /* ── Secciones ── */
+    .seccion {
+      width: 100%; padding: 2rem 1.5rem;
+      border: 1px solid var(--linea); background: var(--gris-suave);
+      position: relative;
+    }
+    .seccion::before {
+      content: ''; position: absolute;
+      top: -1px; left: 10%; width: 80%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--oro), transparent);
+    }
+    .seccion-titulo { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.4rem; font-weight: 300; text-align: center; color: var(--texto); margin-bottom: 0.3rem; }
+    .seccion-subtitulo { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--texto-suave); text-align: center; margin-bottom: 1.5rem; }
+    .seccion-texto { font-family: 'Cormorant Garamond', serif; font-size: 1rem; font-weight: 300; color: var(--texto-suave); text-align: center; line-height: 1.8; }
+
+    /* ── Dresscode ── */
+    .dresscode-items { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1rem; }
+    .dresscode-item { display: flex; align-items: center; gap: 1rem; padding: 0.8rem 1rem; border: 1px solid var(--linea); background: var(--blanco); }
+    .dresscode-icono { width: 8px; height: 8px; background: var(--oro); transform: rotate(45deg); flex-shrink: 0; }
+    .dresscode-texto { font-family: 'Cormorant Garamond', serif; font-size: 1rem; font-weight: 300; color: var(--texto); }
+    .dresscode-sub { font-size: 0.72rem; color: var(--texto-suave); letter-spacing: 0.05em; }
+
+    /* ── Regalos ── */
+    .regalo-alias {
+      display: block; width: 100%; margin-top: 1rem;
+      padding: 0.8rem 1.5rem;
+      border: 1px solid var(--oro);
+      font-family: 'Cormorant Garamond', serif; font-size: 1.1rem;
+      color: var(--oro); letter-spacing: 0.1em;
+      cursor: pointer; transition: all 0.3s; background: transparent; text-align: center;
+    }
+    .regalo-alias:hover { background: var(--oro); color: var(--blanco); }
+    .regalo-copiado { font-size: 0.7rem; color: var(--oro); letter-spacing: 0.1em; margin-top: 0.5rem; opacity: 0; transition: opacity 0.3s; text-align: center; }
+    .regalo-copiado.visible { opacity: 1; }
+
+    /* ── Instagram ── */
+    .ig-link {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
+      margin-top: 1rem; padding: 0.75rem 2rem; border: 1px solid var(--oro);
+      color: var(--oro); font-family: 'Tenor Sans', sans-serif;
+      font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase;
+      text-decoration: none; transition: all 0.3s ease; width: 100%;
+    }
+    .ig-link:hover { background: var(--oro); color: var(--blanco); }
+    .ig-link svg { width: 16px; height: 16px; fill: currentColor; }
+    .ig-hashtag { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.3rem; color: var(--oro); margin-top: 0.8rem; display: block; text-align: center; }
+
+    /* ── Campos de formulario ── */
+    .campo { margin-bottom: 1.2rem; }
+    .campo label { display: block; font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--oro); margin-bottom: 0.5rem; }
+    .campo input,
+    .campo select,
+    .campo textarea {
+      width: 100%; background: transparent; border: none;
+      border-bottom: 1px solid var(--linea);
+      padding: 0.6rem 0;
+      font-family: 'Cormorant Garamond', serif; font-size: 1rem;
+      color: var(--texto); outline: none; transition: border-color 0.3s;
+      appearance: none; -webkit-appearance: none; border-radius: 0;
+    }
+    .campo input:focus,
+    .campo select:focus,
+    .campo textarea:focus { border-bottom-color: var(--oro); }
+    .campo select {
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9A96E' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 4px center; padding-right: 24px;
+    }
+    .campo textarea { resize: none; height: 60px; line-height: 1.6; }
+    .campo-oculto { display: none; }
+
+    .btn-confirmar {
+      width: 100%; padding: 1rem; background: transparent;
+      border: 1px solid var(--oro); color: var(--oro);
+      font-family: 'Tenor Sans', sans-serif; font-size: 0.72rem;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.3s ease; margin-top: 0.5rem;
+    }
+    .btn-confirmar:hover:not(:disabled) { background: var(--oro); color: var(--blanco); }
+    .btn-confirmar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Éxito ── */
+    .exito { display: none; text-align: center; padding: 1.5rem 0; }
+    .exito-icono {
+      width: 40px; height: 40px; border: 1px solid var(--oro);
+      border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; margin: 0 auto 1rem;
+    }
+    .exito-icono svg { width: 18px; height: 18px; stroke: var(--oro); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .exito-titulo { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.3rem; font-weight: 300; color: var(--texto); margin-bottom: 0.4rem; }
+    .exito-texto { font-size: 0.8rem; color: var(--texto-suave); letter-spacing: 0.05em; line-height: 1.7; }
+
+    /* ── Pie ── */
+    .pie { margin-top: 4rem; text-align: center; }
+    .pie-marca { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--linea); }
+
+    @media (max-width: 360px) {
+      .pagina { padding: 3rem 1.2rem 5rem; }
+      .countdown { gap: 0.8rem; }
+      .cd-num { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="destellos-canvas"></canvas>
+
+<!-- ↓ REEMPLAZAR "cancion.mp3" con el nombre de tu archivo de audio (debe estar en la misma carpeta) -->
+<audio id="audio" loop preload="none">
+  <source src="Adele_-_Set_Fire_to_the_Rain.mp3" type="audio/mpeg">
+</audio>
+
+<div class="pagina">
+
+  <!-- Saludo personalizado -->
+  <p class="saludo-invitado reveal r1" id="saludoInvitado"></p>
+
+  <!-- Ornamento -->
+  <div class="ornamento reveal r2">
+    <div class="ornamento-linea"></div>
+    <div class="ornamento-diamante"></div>
+    <div class="ornamento-linea derecha"></div>
+  </div>
+
+  <!-- Encabezado -->
+  <p class="presenta reveal r2">Mis quince años</p>
+  <h1 class="nombre-quinceañera reveal r3">Sofía</h1>
+
+  <!-- Reproductor -->
+  <div class="musica-contenedor reveal r3">
+    <p class="musica-label">Nuestra canción</p>
+    <div class="musica-inner">
+      <button class="btn-play" id="btnPlay" onclick="toggleMusica()" aria-label="Play / Pause">
+        <svg class="icon-play"  viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <svg class="icon-pause" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
+      <div class="musica-barras" id="musicaBarras">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <!-- ↓ REEMPLAZAR con el nombre real de la canción -->
+      <p class="musica-titulo" id="musicaTitulo">Presioná play</p>
+    </div>
+  </div>
+
+  <div class="sep reveal r4">
+    <div class="sep-linea"></div>
+    <div class="sep-centro"><div class="sep-punto"></div><div class="sep-punto grande"></div><div class="sep-punto"></div></div>
+    <div class="sep-linea"></div>
+  </div>
+
+  <!-- Info evento -->
+  <div class="info-evento reveal r4">
+    <div class="info-bloque">
+      <p class="info-label">Fecha</p>
+      <p class="info-valor">Sábado 13 de junio</p>
+      <p class="info-sub">2026</p>
+    </div>
+    <div class="info-bloque">
+      <p class="info-label">Hora</p>
+      <p class="info-valor">21 : 00 hs</p>
+    </div>
+    <div class="info-bloque">
+      <p class="info-label">Lugar</p>
+      <p class="info-valor">Salón San Telmo</p>
+      <p class="info-sub">Av. Corrientes 1234, Buenos Aires</p>
+    </div>
+  </div>
+
+  <a class="btn-mapa reveal r5"
+     href="https://maps.google.com/?q=Av.+Corrientes+1234+Buenos+Aires"
+     target="_blank">
+    <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+    Ver ubicación
+  </a>
+
+  <p class="frase reveal r5">
+    "Hay momentos que se convierten en recuerdos<br>
+    para toda la vida. Este es uno de ellos."
+  </p>
+
+  <!-- Countdown -->
+  <div class="reveal r6" style="width:100%;text-align:center">
+    <p class="countdown-titulo">Faltan</p>
+    <div class="countdown">
+      <div class="cd-bloque"><span class="cd-num" id="cd-dias">--</span><span class="cd-label">días</span></div>
+      <span class="cd-sep">·</span>
+      <div class="cd-bloque"><span class="cd-num" id="cd-horas">--</span><span class="cd-label">horas</span></div>
+      <span class="cd-sep">·</span>
+      <div class="cd-bloque"><span class="cd-num" id="cd-min">--</span><span class="cd-label">minutos</span></div>
+      <span class="cd-sep">·</span>
+      <div class="cd-bloque"><span class="cd-num" id="cd-seg">--</span><span class="cd-label">segundos</span></div>
+    </div>
+  </div>
+
+  <div class="sep reveal r7">
+    <div class="sep-linea"></div>
+    <div class="sep-centro"><div class="sep-punto"></div><div class="sep-punto grande"></div><div class="sep-punto"></div></div>
+    <div class="sep-linea"></div>
+  </div>
+
+  <!-- DRESSCODE -->
+  <div class="seccion reveal r7">
+    <h2 class="seccion-titulo">Dress Code</h2>
+    <p class="seccion-subtitulo">Cómo venir vestido/a</p>
+    <div class="dresscode-items">
+      <div class="dresscode-item">
+        <div class="dresscode-icono"></div>
+        <div>
+          <p class="dresscode-texto">Elegante sport</p>
+          <p class="dresscode-sub">Para todos los invitados</p>
+        </div>
+      </div>
+      <div class="dresscode-item">
+        <div class="dresscode-icono"></div>
+        <div>
+          <p class="dresscode-texto">Chicas de blanco</p>
+          <p class="dresscode-sub">El honor de acompañar a la quinceañera</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sep reveal r7">
+    <div class="sep-linea"></div>
+    <div class="sep-centro"><div class="sep-punto"></div><div class="sep-punto grande"></div><div class="sep-punto"></div></div>
+    <div class="sep-linea"></div>
+  </div>
+
+  <!-- REGALOS -->
+  <div class="seccion reveal r7">
+    <h2 class="seccion-titulo">Regalos</h2>
+    <p class="seccion-subtitulo">Tu presencia es el mejor regalo</p>
+    <p class="seccion-texto">
+      Lo más importante para mí es que estés presente en este momento tan especial.<br><br>
+      Si de todas formas querés tener un detalle conmigo, con mucho amor te comparto:
+    </p>
+    <!-- ↓ REEMPLAZAR con el alias real -->
+    <button class="regalo-alias" onclick="copiarAlias('$sofia.quince')">
+      Alias: $sofia.quince
+      <br><span style="font-size:0.7rem;letter-spacing:0.1em;font-family:'Tenor Sans',sans-serif">Tocá para copiar</span>
+    </button>
+    <p class="regalo-copiado" id="aliasCopiadoMsg">✦ Alias copiado</p>
+    <p class="seccion-texto" style="margin-top:1.2rem;font-size:0.85rem;">
+      También podés ver mi lista de deseos en
+      <!-- ↓ REEMPLAZAR con el link real de la lista -->
+      <a href="https://www.tulistaderegalos.com" target="_blank" style="color:var(--oro);text-decoration:none;">mi lista de regalos</a>
+    </p>
+  </div>
+
+  <div class="sep reveal r8">
+    <div class="sep-linea"></div>
+    <div class="sep-centro"><div class="sep-punto"></div><div class="sep-punto grande"></div><div class="sep-punto"></div></div>
+    <div class="sep-linea"></div>
+  </div>
+
+  <!-- INSTAGRAM -->
+  <div class="seccion reveal r8">
+    <h2 class="seccion-titulo">Compartí el momento</h2>
+    <p class="seccion-subtitulo">Etiquetame en tus fotos del evento</p>
+    <p class="seccion-texto">
+      Quiero guardar cada recuerdo de esta noche.<br>
+      Subí tus fotos y usá nuestro hashtag:
+    </p>
+    <!-- ↓ REEMPLAZAR con el hashtag y usuario reales -->
+    <span class="ig-hashtag">#MisQuinceSofia</span>
+    <a class="ig-link" href="https://instagram.com/sofia_quince" target="_blank">
+      <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+      Ir a Instagram
+    </a>
+  </div>
+
+  <div class="sep reveal r8">
+    <div class="sep-linea"></div>
+    <div class="sep-centro"><div class="sep-punto"></div><div class="sep-punto grande"></div><div class="sep-punto"></div></div>
+    <div class="sep-linea"></div>
+  </div>
+
+  <!-- SUGERENCIA DE CANCIONES -->
+  <div class="seccion reveal r8">
+    <h2 class="seccion-titulo">Sugerí una canción</h2>
+    <p class="seccion-subtitulo">Para la pista de baile</p>
+    <p class="seccion-texto" style="margin-bottom:1.5rem;">
+      ¿Qué tema no puede faltar en mi fiesta?<br>¡Armemos juntos el playlist de la noche!
+    </p>
+    <div id="formulario-cancion">
+      <div class="campo">
+        <label>Tu nombre</label>
+        <input type="text" id="can-nombre" placeholder="María García">
+      </div>
+      <div class="campo">
+        <label>Canción y artista</label>
+        <input type="text" id="can-cancion" placeholder="Ej: Flowers — Miley Cyrus">
+      </div>
+      <div class="campo">
+        <label>¿Por qué esta canción?</label>
+        <textarea id="can-motivo" placeholder="Opcional..."></textarea>
+      </div>
+      <button class="btn-confirmar" id="btnCancion" onclick="enviarCancion()">
+        Sugerir canción
+      </button>
+    </div>
+    <div class="exito" id="exito-cancion">
+      <div class="exito-icono"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <p class="exito-titulo">¡Gracias!</p>
+      <p class="exito-texto">Tu canción fue agregada al playlist.</p>
+    </div>
+  </div>
+
+  <div class="sep reveal r9">
+    <div class="sep-linea"></div>
+    <div class="sep-centro"><div class="sep-punto"></div><div class="sep-punto grande"></div><div class="sep-punto"></div></div>
+    <div class="sep-linea"></div>
+  </div>
+
+  <!-- RSVP -->
+  <div class="seccion reveal r9">
+    <h2 class="seccion-titulo">¿Nos acompañás?</h2>
+    <p class="seccion-subtitulo">Confirmá tu asistencia antes del 1 de junio</p>
+    <div id="formulario-rsvp">
+      <div class="campo">
+        <label>Tu nombre completo</label>
+        <input type="text" id="nombre" placeholder="María García" autocomplete="name">
+      </div>
+      <div class="campo">
+        <label>¿Vas a estar?</label>
+        <select id="asistencia" onchange="toggleAcomp()">
+          <option value="">— Seleccioná —</option>
+          <option value="si">Sí, voy a estar ✦</option>
+          <option value="no">No puedo ir</option>
+        </select>
+      </div>
+      <div class="campo campo-oculto" id="campoAcomp">
+        <label>Acompañantes (sin contarte)</label>
+        <input type="number" id="acompanantes" min="0" max="10" value="0">
+      </div>
+      <div class="campo">
+        <label>Restricción alimentaria</label>
+        <input type="text" id="restriccion" placeholder="Vegano, celíaco, etc. (opcional)">
+      </div>
+      <div class="campo">
+        <label>Un mensaje para Sofía</label>
+        <textarea id="mensaje" placeholder="Opcional..."></textarea>
+      </div>
+      <button class="btn-confirmar" id="btnConfirmar" onclick="enviarRSVP()">
+        Confirmar asistencia
+      </button>
+    </div>
+    <div class="exito" id="exito-rsvp">
+      <div class="exito-icono"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <p class="exito-titulo">¡Muchas gracias!</p>
+      <p class="exito-texto">Tu confirmación fue registrada.<br>¡Te esperamos para celebrar juntos!</p>
+    </div>
+  </div>
+
+  <div class="pie reveal r9">
+    <p class="pie-marca">Amatista Studio</p>
+  </div>
+
+</div>
+
+<script>
+  /* ── 1. NOMBRE DESDE URL ── */
+  const params    = new URLSearchParams(window.location.search);
+  const nombreUrl = params.get('invitado') || '';
+  const nombreFmt = nombreUrl
+    .split(' ')
+    .map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+    .join(' ');
+
+  const elSaludo = document.getElementById('saludoInvitado');
+  if (nombreFmt) {
+    elSaludo.textContent = 'Para ' + nombreFmt;
+    document.getElementById('nombre').value     = nombreFmt;
+    document.getElementById('can-nombre').value = nombreFmt;
+  } else {
+    elSaludo.style.display = 'none';
+  }
+
+  /* ── 2. MÚSICA + DESTELLOS ── */
+  const audio    = document.getElementById('audio');
+  const btnPlay  = document.getElementById('btnPlay');
+  const barras   = document.getElementById('musicaBarras');
+  const tituloEl = document.getElementById('musicaTitulo');
+  const canvas   = document.getElementById('destellos-canvas');
+  const ctx      = canvas.getContext('2d');
+
+  // ↓ REEMPLAZAR con el título real
+  const TITULO_CANCION = 'Set Fire to the Rain — Adele';
+
+  let reproduciendo = false;
+  let particulas    = [];
+  let animFrame     = null;
+
+  function toggleMusica() {
+    if (reproduciendo) {
+      audio.pause();
+      reproduciendo = false;
+      btnPlay.classList.remove('playing');
+      barras.classList.remove('activo');
+      tituloEl.textContent = TITULO_CANCION;
+      detenerDestellos();
+    } else {
+      audio.play().then(() => {
+        reproduciendo = true;
+        btnPlay.classList.add('playing');
+        barras.classList.add('activo');
+        tituloEl.textContent = TITULO_CANCION;
+        iniciarDestellos();
+      }).catch(() => {
+        tituloEl.textContent = 'Error al cargar el audio';
+      });
+    }
+  }
+
+  function resizeCanvas() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  const COLORES = [
+    'rgba(201,169,110,',
+    'rgba(232,213,163,',
+    'rgba(253,251,247,',
+    'rgba(122,96,60,',
+  ];
+
+  function crearParticula() {
+    const p = {
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 3 + 1,
+      vida: Math.random() * 80 + 40,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: (Math.random() - 0.5) * 0.6,
+      color: COLORES[Math.floor(Math.random() * COLORES.length)],
+      tipo: Math.random() > 0.5 ? 'circulo' : 'diamante',
+    };
+    p.vidaMax = p.vida;
+    return p;
+  }
+
+  function dibujarParticula(p) {
+    const alpha = Math.sin((p.vida / p.vidaMax) * Math.PI);
+    ctx.globalAlpha = alpha * 0.85;
+    ctx.fillStyle   = p.color + alpha + ')';
+    if (p.tipo === 'circulo') {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(Math.PI / 4);
+      ctx.fillRect(-p.r, -p.r, p.r * 2, p.r * 2);
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function animarDestellos() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (particulas.length < 120) {
+      const n = Math.floor(Math.random() * 3) + 1;
+      for (let i = 0; i < n; i++) particulas.push(crearParticula());
+    }
+    particulas.forEach(p => { p.x += p.vx; p.y += p.vy; p.vida--; dibujarParticula(p); });
+    particulas = particulas.filter(p => p.vida > 0);
+    animFrame  = requestAnimationFrame(animarDestellos);
+  }
+
+  function iniciarDestellos() { canvas.classList.add('activo'); animarDestellos(); }
+  function detenerDestellos() {
+    canvas.classList.remove('activo');
+    cancelAnimationFrame(animFrame);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particulas = [];
+  }
+
+  /* ── 3. COUNTDOWN ── */
+  // ↓ CAMBIAR POR LA FECHA REAL
+  const FECHA_EVENTO = new Date('2026-06-13T21:00:00');
+  function actualizarCountdown() {
+    const diff = FECHA_EVENTO - new Date();
+    if (diff <= 0) {
+      ['cd-dias','cd-horas','cd-min','cd-seg'].forEach(id => document.getElementById(id).textContent = '00');
+      return;
+    }
+    const pad = n => String(Math.floor(n)).padStart(2,'0');
+    document.getElementById('cd-dias').textContent  = pad(diff / 86400000);
+    document.getElementById('cd-horas').textContent = pad((diff % 86400000) / 3600000);
+    document.getElementById('cd-min').textContent   = pad((diff % 3600000)  / 60000);
+    document.getElementById('cd-seg').textContent   = pad((diff % 60000)    / 1000);
+  }
+  actualizarCountdown();
+  setInterval(actualizarCountdown, 1000);
+
+  /* ── 4. COPIAR ALIAS ── */
+  function copiarAlias(alias) {
+    navigator.clipboard.writeText(alias).then(() => {
+      const msg = document.getElementById('aliasCopiadoMsg');
+      msg.classList.add('visible');
+      setTimeout(() => msg.classList.remove('visible'), 2500);
+    });
+  }
+
+  /* ── 5. TOGGLE ACOMPAÑANTES ── */
+  function toggleAcomp() {
+    const val = document.getElementById('asistencia').value;
+    document.getElementById('campoAcomp').classList.toggle('campo-oculto', val !== 'si');
+  }
+
+  /* ── 6. ENVÍOS A APPS SCRIPT ── */
+  // ↓ REEMPLAZAR con tus URLs reales de Google Apps Script
+  const URL_RSVP      = 'https://script.google.com/macros/s/AKfycbytpTXyOWhssCF9Jpq0257JZV7LWg96m2cQR5GddJs6CZL5h0lb_szIU2kY5Gsl7vum/exec';
+  const URL_CANCIONES = 'https://script.google.com/macros/s/AKfycbytpTXyOWhssCF9Jpq0257JZV7LWg96m2cQR5GddJs6CZL5h0lb_szIU2kY5Gsl7vum/exec';
+
+  async function enviarRSVP() {
+    const nombre     = document.getElementById('nombre').value.trim();
+    const asistencia = document.getElementById('asistencia').value;
+    if (!nombre)     { alert('Por favor ingresá tu nombre.');       return; }
+    if (!asistencia) { alert('Por favor indicá si vas a asistir.'); return; }
+    const btn = document.getElementById('btnConfirmar');
+    btn.disabled = true; btn.textContent = 'Enviando...';
+    try {
+      await fetch(URL_RSVP, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo: 'rsvp',
+          nombre, asistencia,
+          acompanantes: document.getElementById('acompanantes').value || '0',
+          restriccion:  document.getElementById('restriccion').value.trim(),
+          mensaje:      document.getElementById('mensaje').value.trim()
+        })
+      });
+      document.getElementById('formulario-rsvp').style.display = 'none';
+      document.getElementById('exito-rsvp').style.display      = 'block';
+    } catch {
+      btn.disabled = false; btn.textContent = 'Confirmar asistencia';
+      alert('Hubo un error. Por favor intentá de nuevo.');
+    }
+  }
+
+  async function enviarCancion() {
+    const cancion = document.getElementById('can-cancion').value.trim();
+    if (!cancion) { alert('Por favor escribí el nombre de la canción.'); return; }
+    const btn = document.getElementById('btnCancion');
+    btn.disabled = true; btn.textContent = 'Enviando...';
+    try {
+      await fetch(URL_CANCIONES, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo: 'cancion',
+          nombre:  document.getElementById('can-nombre').value.trim(),
+          cancion,
+          motivo:  document.getElementById('can-motivo').value.trim()
+        })
+      });
+      document.getElementById('formulario-cancion').style.display = 'none';
+      document.getElementById('exito-cancion').style.display      = 'block';
+    } catch {
+      btn.disabled = false; btn.textContent = 'Sugerir canción';
+      alert('Hubo un error. Por favor intentá de nuevo.');
+    }
+  }
+</script>
+
+</body>
+</html>
+
+
